@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4336423826644754818}
   m_Layer: 0
   m_Name: GrayBlank
-  m_TagString: Untagged
+  m_TagString: GrayBlock
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

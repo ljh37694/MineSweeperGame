@@ -4,25 +4,37 @@ using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class Board : MonoBehaviour
-{
+public class Board : MonoBehaviour {
+	// const
+	public const int row = 16, column = 30, boobCount = 99;
+
+	// static
+	public static Board instance;
+
 	// public
-	public GameObject[] grayBlocks = new GameObject[10];
-	public GameObject[] blueBlocks = new GameObject[3];
+	public GameObject[] grayBlocks = new GameObject[10], blueBlocks = new GameObject[3];
+	public int[,] statusBlueBlocks = new int[row, column];
+	bool[,] isBoob = new bool[row, column];
 
 	// private
-	const int row = 33, column = 21, boobCount = 50;
-	const int rowStart = -(row / 2), rowEnd = row / 2, colStart = -(column / 2), colEnd = column / 2;
-	GameObject[,] grayBoard = new GameObject[row, column], blueBoard = new GameObject[row, column];
+	public GameObject[,] grayBoard = new GameObject[row, column], blueBoard = new GameObject[row, column];
 
-    void Start() {
+	void Start() {
+		instance = this;
 		RenderGrayBlocks();
 		RenderBlueBlocks();
-    }
+
+		//GameObject tmp1 =  Instantiate(blueBlocks[0], new Vector2(0, 0), Quaternion.identity);
+		//GameObject tmp2 = Instantiate(blueBlocks[1], new Vector2(2, 2), Quaternion.identity);
+	}
+
+	void Update() {
+		ClickedMouseRightButtonOnBlueBlock();
+		ClickedMouseLeftButtonOnBlueBlock();
+	}
 
 	void RenderGrayBlocks() {
 		int cnt = 0;
-		bool[,] isBoob = new bool[row, column]; // 어느 좌표가 지뢰인지
 
 		// boobCount개만큼의 지뢰를 랜덤한 좌표에 지정
 		while (cnt <= boobCount) {
@@ -35,25 +47,25 @@ public class Board : MonoBehaviour
 		}
 
 		// 각 좌표가 지뢰이면 지뢰를 아니면 빈 칸
-		for (int i = rowStart; i <= rowEnd; i++) {
-			for (int j = colStart; j <= colEnd; j++) {
-				int idx = 0, r = i + row / 2, c = j + column / 2;
+		for (int r = 0; r < row; r++) {
+			for (int c = 0; c < column; c++) {
+				int idx = 0;
 
 				if (isBoob[r, c]) idx = 9;
 
-				grayBoard[r, c] = Instantiate(grayBlocks[idx], new Vector3(i, j, 0), Quaternion.identity);
+				grayBoard[r, c] = Instantiate(grayBlocks[idx], new Vector3(c, r, 0), Quaternion.identity);
 			}
 		}
 
 		// 각 좌표에서 인접한 지뢰에 따라 숫자 블럭으로 바꾸기
-		for (int i = 0; i < row; i++) {
-			for (int j = 0; j < column; j++) {
-				if (!grayBoard[i, j].CompareTag("Boob")) {
-					int idx = CountBoob(i, j);
+		for (int r = 0; r < row; r++) {
+			for (int c = 0; c < column; c++) {
+				if (!grayBoard[r, c].CompareTag("Boob")) {
+					int idx = CountBoob(r, c);
 
-					Destroy(grayBoard[i, j]);
+					Destroy(grayBoard[r, c]);
 
-					grayBoard[i, j] = Instantiate(grayBlocks[idx], new Vector3(i - (row / 2), j - (column / 2), 0), Quaternion.identity);
+					grayBoard[r, c] = Instantiate(grayBlocks[idx], new Vector3(c, r), Quaternion.identity);
 				}
 			}
 		}
@@ -74,7 +86,7 @@ public class Board : MonoBehaviour
 		for (int i = 0; i < 8; i++) {
 			int nr = r + dy[i], nc = c + dx[i];
 
-			if (IsValidIdx(nr, nc) && grayBoard[nr, nc].CompareTag("Boob")) {
+			if (IsValidIdx(nr, nc) && isBoob[nr, nc]) {
 				cnt++;
 			}
 		}
@@ -82,12 +94,43 @@ public class Board : MonoBehaviour
 		return cnt;
 	}
 
+	// 파란 블록 렌더링
 	void RenderBlueBlocks() {
-		for (int i = rowStart; i <= rowEnd; i++) {
-			for (int j = colStart; j <= colEnd; j++) {
-				int r = i + row / 2, c = j + column / 2;
+		for (int r = 0; r < row; r++) {
+			for (int c = 0; c < column; c++) {
+				blueBoard[r, c] = Instantiate(blueBlocks[0], new Vector3(c, r), Quaternion.identity);
+			}
+		}
+	}
 
-				blueBoard[r, c] = Instantiate(blueBlocks[0], new Vector3(i, j, 0), Quaternion.identity);
+	// 우클릭
+	void ClickedMouseRightButtonOnBlueBlock() {
+		if (Input.GetMouseButtonDown(1)) {
+			Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+
+			if (hit.collider != null) {
+				int r = (int)hit.transform.position.y, c = (int)hit.transform.position.x;
+
+				statusBlueBlocks[r, c] = (statusBlueBlocks[r, c] + 1) % 3;
+				Destroy(blueBoard[r, c]);
+
+				blueBoard[r, c] = Instantiate(blueBlocks[statusBlueBlocks[r, c]], new Vector3(c, r, 0), Quaternion.identity);
+			}
+		}
+	}
+
+	void ClickedMouseLeftButtonOnBlueBlock() {
+		if (Input.GetMouseButtonDown(0)) {
+			Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+			RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+
+			if (hit.collider != null) {
+				int r = (int)hit.transform.position.y, c = (int)hit.transform.position.x;
+
+				if (!blueBoard[r, c].CompareTag("BlankBlueBlock")) return;
+
+				Destroy(blueBoard[r, c]);
 			}
 		}
 	}
