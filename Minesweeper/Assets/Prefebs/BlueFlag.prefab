@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: -3251169098506727156}
   m_Layer: 0
   m_Name: BlueFlag
-  m_TagString: BlueBlock
+  m_TagString: FlagBlock
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

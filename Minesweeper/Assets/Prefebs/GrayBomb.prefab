@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 825502002147563894}
   - component: {fileID: 6803560758515962303}
   m_Layer: 0
-  m_Name: GrayBoob
-  m_TagString: Boob
+  m_Name: GrayBomb
+  m_TagString: Bomb
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
