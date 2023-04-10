@@ -12,7 +12,7 @@ public class Board : MonoBehaviour {
 	public TMP_Text menuText;
 
 	// const
-	const int row = 16, column = 30, bombCount = 80;
+	public static int row, column, bombCount;
 	const float boomDelay = 0.5f; // ÆøÅº Æø¹ß µô·¹ÀÌ
 
 	readonly string[] text = { "Game Over", "Clear" };
@@ -39,10 +39,13 @@ public class Board : MonoBehaviour {
 	GameObject[,] grayBoard, blueBoard;
 
 	// Æø¹ßÀ½ »ç¿îµå
-	AudioSource boomSound;
+	AudioSource audioSource;
+
+	public AudioClip boomSound;
+	public AudioClip clearSound;
 
 	void Awake() {
-		boomSound = GetComponent<AudioSource>();
+		audioSource = GetComponent<AudioSource>();
 	}
 
 	void Start() {
@@ -61,22 +64,18 @@ public class Board : MonoBehaviour {
 			if (Input.GetMouseButtonDown(0) && !finishMenu.activeSelf) {
 				finishMenu.SetActive(true);
 
-				boomSound.volume /= 3;
+				audioSource.volume /= 3;
 
 				isClear = true;
 			}
 		}
 	}
 
-	public int GetRow() { return row; }
-
-	public int GetColumn() { return column; }
-
 	void Init() {
 		safezoneCount = row * column - bombCount;
 		finishMenu.SetActive(false);
 		menuText.text = text[0];
-		boomSound.volume = 80;
+		audioSource.volume = 80;
 
 		isBomb = new bool[row, column];
 		statusBlueBlocks = new int[row, column];
@@ -97,16 +96,12 @@ public class Board : MonoBehaviour {
 		Init();
 	}
 
-	public void Exit() {
-		Application.Quit();
-	}
-
 	void GameClear() {
 		if (safezoneCount == 0) {
-			RemoveAllBlueBlocks();
-			RemoveAllGrayBlocks();
-
 			menuText.text = text[1];
+
+			audioSource.clip = clearSound;
+			audioSource.Play();
 
 			finishMenu.SetActive(true);
 
@@ -237,7 +232,8 @@ public class Board : MonoBehaviour {
 
 		grayBoard[r, c] = Instantiate(grayBlocks[10], new Vector2(c, r), Quaternion.identity);
 
-		boomSound.Play();
+		audioSource.clip = boomSound;
+		audioSource.Play();
 	}
 
 	// ÁÂÇ¥ ±¸Á¶Ã¼

@@ -10,6 +10,8 @@ TagManager:
   - Bomb
   - BlueBlock
   - Boom
+  - FlagBlock
+  - Background
   layers:
   - Default
   - TransparentFX
