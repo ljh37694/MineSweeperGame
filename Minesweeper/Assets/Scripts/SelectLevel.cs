@@ -5,11 +5,11 @@ public class SelectLevel : MonoBehaviour {
 	public Button easyBtn, usualBtn, hardBtn;
 
 	void Start() {
-		easyBtn.onClick.AddListener(() => SetBoard(9, 9, 10));
+		easyBtn.onClick.AddListener(() => SetBoard(9, 9, 7));
 
-		usualBtn.onClick.AddListener(() => SetBoard(16, 16, 40));
+		usualBtn.onClick.AddListener(() => SetBoard(16, 16, 20));
 
-		hardBtn.onClick.AddListener(() => SetBoard(16, 30, 99));
+		hardBtn.onClick.AddListener(() => SetBoard(16, 30, 50));
 	}
 
 	void SetBoard(int row, int column, int bombCount) {

@@ -32,6 +32,9 @@ public class Board : MonoBehaviour {
 	// 각 좌표에 폭탄이 있으면 true 아니면 false
 	bool[,] isBomb;
 
+	// 방문한 좌표이면 true 아니면 false
+	bool[,] visit = new bool[row, column];
+
 	// 파란 블럭의 상태 저장
 	int[,] statusBlueBlocks;
 
@@ -46,9 +49,7 @@ public class Board : MonoBehaviour {
 
 	void Awake() {
 		audioSource = GetComponent<AudioSource>();
-	}
 
-	void Start() {
 		Init();
 	}
 
@@ -71,11 +72,16 @@ public class Board : MonoBehaviour {
 		}
 	}
 
+	// 초기화
 	void Init() {
+		finish = false;
+		isClear = false;
+
 		safezoneCount = row * column - bombCount;
 		finishMenu.SetActive(false);
 		menuText.text = text[0];
 		audioSource.volume = 80;
+		audioSource.Stop();
 
 		isBomb = new bool[row, column];
 		statusBlueBlocks = new int[row, column];
@@ -84,9 +90,6 @@ public class Board : MonoBehaviour {
 
 		RenderGrayBlocks();
 		RenderBlueBlocks();
-
-		finish = false;
-		isClear = false;
 	}
 
 	public void GameRestart() {
@@ -96,6 +99,7 @@ public class Board : MonoBehaviour {
 		Init();
 	}
 
+	// 게임 클리어했을 때
 	void GameClear() {
 		if (safezoneCount == 0) {
 			menuText.text = text[1];
@@ -110,6 +114,7 @@ public class Board : MonoBehaviour {
 		}
 	}
 
+	// 모든 파란 블럭 제거
 	void RemoveAllBlueBlocks() {
 		for (int r = 0; r < row; r++) {
 			for (int c = 0; c < column; c++) {
@@ -118,6 +123,7 @@ public class Board : MonoBehaviour {
 		}
 	}
 
+	// 모든 회색 블럭 제거
 	void RemoveAllGrayBlocks() {
 		for (int r = 0; r < row; r++) {
 			for (int c = 0; c < column; c++) {
@@ -246,34 +252,39 @@ public class Board : MonoBehaviour {
 	// 빈칸 회색 블럭이 있는 위치의 파란 블럭을 클릭했을 때 주변 블럭을 밝힘
 	void ClickedBlankGrayBlock(int r, int c) {
 		Queue<Pos> q = new Queue<Pos>();
-		bool[,] visit = new bool[row, column];
-
+		
 		q.Enqueue(new Pos(r, c));
-		visit[r, c] = true;
+		safezoneCount--;
+		blueBoard[r, c].SetActive(false);
 
 		while (q.Count != 0) {
+			// 현재 좌표
 			Pos cur = q.Peek(); q.Dequeue();
-			GameObject curBlock = grayBoard[cur.r, cur.c];
 
-			blueBoard[cur.r, cur.c].SetActive(false);
-			safezoneCount--;
-
-			if (curBlock.CompareTag("GrayBlock")) continue;
-
+			// 현재 좌표 기준 8방향
 			for (int i = 0; i < 8; i++) {
+				// 다음 좌표
 				Pos next = new Pos(cur.r + dr[i], cur.c + dc[i]);
-				GameObject nextBlock;
 
-				if (!IsValidIdx(next.r, next.c) || 
-					visit[next.r, next.c]) continue;
+				// 다음 블럭
+				GameObject nextGrayBlock, nextBlueBlock;
 
-				nextBlock = grayBoard[next.r, next.c];
+				// 유효한 좌표가 아니면 continue
+				if (!IsValidIdx(next.r, next.c)) continue;
 
-				if (curBlock.CompareTag("BlankGrayBlock")) {
+				nextGrayBlock = grayBoard[next.r, next.c];
+				nextBlueBlock = blueBoard[next.r, next.c];
+
+				// 다음 파란 블럭이 비활성화 되어 있다면 방문한 적이 있는 것이기 때문에 continue
+				if (!nextBlueBlock.activeSelf) continue;
+
+				// 다음 파란 블럭 비활성화
+				nextBlueBlock.SetActive(false);
+				safezoneCount--;
+
+				// 다음 회색 블럭이 빈칸 블럭일 때만 queue에 push
+				if (nextGrayBlock.CompareTag("BlankGrayBlock"))
 					q.Enqueue(next);
-
-					visit[next.r, next.c] = true;
-				}
 			}
 		}
 	}
